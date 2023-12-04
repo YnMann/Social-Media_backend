@@ -4,7 +4,7 @@ package api_server
 type Config struct {
 	// Адрес по которому мы запускаем веб сервер
 	BindAddr string `toml:"bind_addr"`
-	LogLevel string `toml:"log_level`
+	LogLevel string `toml:"log_level"`
 }
 
 // Передает инициализированный config, default параметрами

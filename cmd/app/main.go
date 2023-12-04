@@ -16,7 +16,7 @@ func init() {
 	flag.StringVar(
 		&config_path,
 		"config-path",
-		"configs/apis",
+		"config/api_server.toml",
 		"path to config file")
 }
 
@@ -28,7 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// Создание экземпляра API-сервера
 	s := api_server.New(config)
 
