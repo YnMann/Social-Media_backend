@@ -1,4 +1,4 @@
-module github.com/YnMann/social-media_backend
+module github.com/YnMann/chat_backend
 
 go 1.21.4
 

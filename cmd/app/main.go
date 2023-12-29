@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/BurntSushi/toml"
-	api_server "github.com/YnMann/social-media_backend/internal/app/api-server/api-server"
+	server "github.com/YnMann/chat_backend/internal/server/server"
 )
 
 var (
@@ -23,13 +23,13 @@ func init() {
 func main() {
 	flag.Parse()
 	// Создание нового объекта конфигурации API-сервера
-	config := api_server.NewConfig()
+	config := server.NewConfig()
 	_, err := toml.DecodeFile(config_path, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Создание экземпляра API-сервера
-	s := api_server.New(config)
+	s := server.New(config)
 
 	// Если имеется ошибка при создании сервера,
 	// то выбрасываем ошибку
