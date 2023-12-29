@@ -1,21 +1,30 @@
 package server
 
-// // APIServer
-// type APIServer struct {
-// 	config *Config
-// 	logger *logrus.Logger
-// 	router *mux.Router
-// 	store  *store.Store
-// }
+import (
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+)
 
-// // New
-// func New(config *Config) *APIServer {
-// 	return &APIServer{
-// 		config: config,
-// 		logger: logrus.New(),
-// 		router: mux.NewRouter(),
-// 	}
-// }
+// APIServer
+type App struct {
+	config *Config
+	logger *logrus.Logger
+	router *mux.Router
+	store  *store.Store
+}
+
+// New
+func NewApp() *APIServer {
+	return &APIServer{
+		config: config,
+		logger: logrus.New(),
+		router: mux.NewRouter(),
+	}
+}
+
+func (a *App) Run(port string) error {
+
+}
 
 // // Start
 // func (s *APIServer) Start() error {
