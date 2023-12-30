@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Создание нового объекта конфигурации API-сервера
-	if _, err := config.Init(); err != nil {
+	if err := config.Init(); err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 	// Создание экземпляра API-сервера
