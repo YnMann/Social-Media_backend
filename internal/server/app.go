@@ -1,8 +1,15 @@
 package server
 
 import (
+	"context"
+	"log"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // APIServer
@@ -14,14 +21,45 @@ type App struct {
 
 // New
 func NewApp() *App {
+	// db := initDb()
+
+	// userRepo := authmongo.NewUserRepository(db, viper.GetString("mongo.user_collection"))
+
 	return &App{
 		logger: logrus.New(),
-		router: mux.NewRouter(),
+		// authUC: authusecase.NewAuthUseCase(
+		// 	userRepo,
+		// 	viper.GetString("auth.hash_salt"),
+		// 	[]byte(viper.GetString("auth.signing_key")),
+		// 	viper.GetDuration("auth.token_ttl"),
+		// ),
 	}
 }
 
-func (a *App) Run(port string) error {
+// func (a *App) Run(port string) error {
 
+// }
+
+func initDb() *mongo.Database {
+	client, err := mongo.NewClient(options.Client().ApplyURI(viper.GetString("mongo.name")))
+	if err != nil {
+		log.Fatalf("Error connection to mongodb")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return client.Database(viper.GetString("mongo.name"))
 }
 
 // // Start
