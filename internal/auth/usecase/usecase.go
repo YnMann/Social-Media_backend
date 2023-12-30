@@ -73,7 +73,7 @@ func (a *AuthUseCase) SignIn(ctx context.Context, username string, password stri
 	return token.SignedString(a.signingKey)
 }
 
-func (a *AuthUseCase) ParseToken(ctx context.Context, accessToken string) (*models.User, err) {
+func (a *AuthUseCase) ParseToken(ctx context.Context, accessToken string) (*models.User, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken,
 		&AuthClaims{},
