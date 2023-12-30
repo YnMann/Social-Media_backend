@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,7 +25,6 @@ import (
 // APIServer
 type App struct {
 	logger *logrus.Logger
-	router *mux.Router
 
 	httpServer *http.Server
 	authUC     auth.UseCase
@@ -52,15 +50,27 @@ func NewApp() *App {
 
 func (a *App) Run(port string) error {
 	// Init gin handler
-	router := gin.Default()
-	router.Use(
+	r := gin.Default()
+	r.Use(
 		gin.Recovery(),
 		gin.Logger(),
 	)
 
+	// Maintenance of static files for the front of a folder 'web/build'
+	// this will provide access to the files along the way /public
+	r.Static("/public", "./web/build")
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./web/build/index.html")
+	})
+
 	// Set up http handlers
 	// SignUp/SignIn endpoints
-	ahttp.RegisterHTTPEndpoints(router, a.authUC)
+	ahttp.RegisterHTTPEndpoints(r, a.authUC)
+
+	// Set up http handlers
+	// SignUp/SignIn endpoints
+	ahttp.RegisterHTTPEndpoints(r, a.authUC)
 
 	// API endpoints
 	// authMiddleware := ahttp.NewAuthMiddleware(a.authUC)
@@ -69,7 +79,7 @@ func (a *App) Run(port string) error {
 	// HTTP server
 	a.httpServer = &http.Server{
 		Addr:           ":" + port,
-		Handler:        router,
+		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -93,10 +103,9 @@ func (a *App) Run(port string) error {
 }
 
 func initDb() *mongo.Database {
-	clientOptions := options.Client().ApplyURI(viper.GetString("mongo.uri")) // Замените на нужный URI
-	client, err := mongo.Connect(context.Background(), clientOptions)
+	client, err := mongo.NewClient(options.Client().ApplyURI(viper.GetString("mongo.uri")))
 	if err != nil {
-		log.Fatalf("Error connection to MongoDB: %v", err)
+		log.Fatalf("Error occured while establishing connection to mongoDB")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
