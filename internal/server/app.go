@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,12 +59,15 @@ func (a *App) Run(port string) error {
 
 	// Maintenance of static files for the front of a folder 'web/build'
 	// this will provide access to the files along the way /public
-	r.Static("/public", "./web/build")
+	r.Static("/assets", "./web/dist/assets")
 
+	// SPA fallback
 	r.NoRoute(func(c *gin.Context) {
-		c.File("./web/build/index.html")
+		// Checking that the requested path does not start with '/api' and does not apply to the API
+		if !strings.HasPrefix(c.Request.URL.Path, "/api") {
+			c.File("./web/dist/index.html")
+		}
 	})
-
 	// Set up http handlers
 	// SignUp/SignIn endpoints
 	ahttp.RegisterHTTPEndpoints(r, a.authUC)
