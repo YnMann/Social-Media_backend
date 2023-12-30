@@ -93,9 +93,10 @@ func (a *App) Run(port string) error {
 }
 
 func initDb() *mongo.Database {
-	client, err := mongo.NewClient(options.Client().ApplyURI(viper.GetString("mongo.name")))
+	clientOptions := options.Client().ApplyURI(viper.GetString("mongo.uri")) // Замените на нужный URI
+	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
-		log.Fatalf("Error connection to mongodb")
+		log.Fatalf("Error connection to MongoDB: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
