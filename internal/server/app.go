@@ -7,16 +7,14 @@ import (
 
 // APIServer
 type App struct {
-	config *Config
 	logger *logrus.Logger
 	router *mux.Router
-	store  *store.Store
+	// store  *store.Store
 }
 
 // New
-func NewApp() *APIServer {
-	return &APIServer{
-		config: config,
+func NewApp() *App {
+	return &App{
 		logger: logrus.New(),
 		router: mux.NewRouter(),
 	}
