@@ -68,10 +68,6 @@ func (a *App) Run(port string) error {
 	// SignUp/SignIn endpoints
 	ahttp.RegisterHTTPEndpoints(r, a.authUC)
 
-	// Set up http handlers
-	// SignUp/SignIn endpoints
-	ahttp.RegisterHTTPEndpoints(r, a.authUC)
-
 	// API endpoints
 	// authMiddleware := ahttp.NewAuthMiddleware(a.authUC)
 	// api := router.Group("/api", authMiddleware)
