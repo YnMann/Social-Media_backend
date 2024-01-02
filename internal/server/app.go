@@ -21,6 +21,7 @@ import (
 	ahttp "github.com/YnMann/chat_backend/internal/auth/delivery/http"
 	amongo "github.com/YnMann/chat_backend/internal/auth/repository/mongo"
 	ausecase "github.com/YnMann/chat_backend/internal/auth/usecase"
+	// c = mongo
 )
 
 // APIServer
@@ -36,7 +37,8 @@ type App struct {
 func NewApp() *App {
 	db := initDb()
 
-	userRepo := amongo.NewUserRepository(db, viper.GetString("mongo.user_collection"))
+	userRepo := amongo.NewUserRepository(db, viper.GetString("mongo.collections.users"))
+	// messagesRepo := cmongo.NewMessagesRepository(db, viper.GetString("mongo.collections.messages"))
 
 	return &App{
 		logger: logrus.New(),
@@ -46,6 +48,7 @@ func NewApp() *App {
 			[]byte(viper.GetString("auth.signing_key")),
 			viper.GetDuration("auth.token_ttl"),
 		),
+		// messagesUC:  cusecase.
 	}
 }
 
