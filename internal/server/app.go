@@ -21,7 +21,9 @@ import (
 	ahttp "github.com/YnMann/chat_backend/internal/auth/delivery/http"
 	amongo "github.com/YnMann/chat_backend/internal/auth/repository/mongo"
 	ausecase "github.com/YnMann/chat_backend/internal/auth/usecase"
-	// c = mongo
+
+	// c = chat
+	chttp "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
 )
 
 // APIServer
@@ -48,7 +50,6 @@ func NewApp() *App {
 			[]byte(viper.GetString("auth.signing_key")),
 			viper.GetDuration("auth.token_ttl"),
 		),
-		// messagesUC:  cusecase.
 	}
 }
 
@@ -71,13 +72,18 @@ func (a *App) Run(port string) error {
 			c.File("./web/dist/index.html")
 		}
 	})
+
+	// API endpoints
+	authMiddleware := ahttp.NewAuthMiddleware(a.authUC)
+	r.Group("/api", authMiddleware)
+
 	// Set up http handlers
 	// SignUp/SignIn endpoints
 	ahttp.RegisterHTTPEndpoints(r, a.authUC)
 
-	// API endpoints
-	// authMiddleware := ahttp.NewAuthMiddleware(a.authUC)
-	// api := router.Group("/api", authMiddleware)
+	// Set up http handlers
+	// Sockets endpoints
+	chttp.RegisterHTTPEndpoints(r)
 
 	// HTTP server
 	a.httpServer = &http.Server{

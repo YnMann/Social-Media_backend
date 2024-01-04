@@ -7,7 +7,10 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 )
 
-require github.com/gorilla/websocket v1.5.1 // indirect
+require (
+	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.10.2 // indirect
