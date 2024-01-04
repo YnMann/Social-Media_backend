@@ -7,7 +7,7 @@ import (
 func RegisterHTTPEndpoints(router *gin.Engine) {
 	go manager.start()
 
-	websocketEndpoints := router.Group("/:user_id")
+	websocketEndpoints := router.Group("/u")
 	{
 		websocketEndpoints.GET("/ws", func(c *gin.Context) {
 			wsHandler(c.Writer, c.Request)
