@@ -24,12 +24,18 @@ type Messages struct {
 }
 
 type ChatRepository struct {
-	db *mongo.Collection
+	mdb *mongo.Collection
+	udb *mongo.Collection
 }
 
-func NewMessagesRepository(db *mongo.Database, collection string) *ChatRepository {
+func NewMessagesRepository(
+	db *mongo.Database,
+	msg_collection string,
+	u_collection string,
+) *ChatRepository {
 	return &ChatRepository{
-		db: db.Collection(collection),
+		mdb: db.Collection(msg_collection),
+		udb: db.Collection(u_collection),
 	}
 }
 
@@ -39,7 +45,7 @@ func (c ChatRepository) CreateMsg(ctx context.Context, m *models.Messages) error
 	model := toMongoMsg(m)
 
 	// Insert the document into MongoDB
-	res, err := c.db.InsertOne(ctx, model)
+	res, err := c.mdb.InsertOne(ctx, model)
 	if err != nil {
 		return err
 	}
@@ -70,7 +76,7 @@ func (r ChatRepository) GetMsg(
 	recipient string,
 ) (*models.Messages, error) {
 	msg := new(Messages)
-	err := r.db.FindOne(ctx, bson.M{
+	err := r.mdb.FindOne(ctx, bson.M{
 		"sender":    sender,
 		"sender_ip": sender_ip,
 		"recipient": recipient,
@@ -117,7 +123,7 @@ func (r ChatRepository) GetContacts(ctx context.Context) ([]*models.Contacts, er
 		"last_name":  1,
 	}
 
-	cursor, err := r.db.Find(ctx, filter, options.Find().SetProjection(projection))
+	cursor, err := r.udb.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return nil, err
 	}

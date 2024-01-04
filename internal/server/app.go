@@ -40,7 +40,11 @@ func NewApp() *App {
 	db := initDb()
 
 	userRepo := amongo.NewUserRepository(db, viper.GetString("mongo.collections.users"))
-	messagesRepo := cmongo.NewMessagesRepository(db, viper.GetString("mongo.collections.messages"))
+	messagesRepo := cmongo.NewMessagesRepository(
+		db,
+		viper.GetString("mongo.collections.messages"),
+		viper.GetString("mongo.collections.users"),
+	)
 
 	return &App{
 		authUC: ausecase.NewAuthUseCase(
