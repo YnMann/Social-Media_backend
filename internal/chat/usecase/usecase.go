@@ -8,21 +8,21 @@ import (
 )
 
 type ChatUseCase struct {
-	userRepo chat.ChatRepository
+	chatRepo chat.ChatRepository
 }
 
 func NewChatUseCase(
-	userRepo chat.ChatRepository,
+	chatRepo chat.ChatRepository,
 ) *ChatUseCase {
 	return &ChatUseCase{
-		userRepo: userRepo,
+		chatRepo: chatRepo,
 	}
 }
 
 func (uc *ChatUseCase) GetContacts(ctx context.Context) ([]*models.Contacts, error) {
-	contacts, err := uc.chatRepo.GetContacts(ctx)
+	c, err := uc.chatRepo.GetContacts(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return contacts, nil
+	return c, nil
 }
