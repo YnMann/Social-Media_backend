@@ -23,7 +23,8 @@ import (
 	ausecase "github.com/YnMann/chat_backend/internal/auth/usecase"
 
 	// c = chat
-	chttp "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
+	chttp "github.com/YnMann/chat_backend/internal/chat/delivery/http"
+	csockets "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
 	cmongo "github.com/YnMann/chat_backend/internal/chat/repository/mongo"
 	cusecase "github.com/YnMann/chat_backend/internal/chat/usecase"
 )
@@ -86,8 +87,12 @@ func (a *App) Run(port string) error {
 	ahttp.RegisterHTTPEndpoints(r, a.authUC)
 
 	// Set up http handlers
+	// Chat endpoints
+	chttp.RegisterHTTPEndpoints(r, a.chatUC)
+
+	// Set up http handlers
 	// Sockets endpoints
-	chttp.RegisterHTTPEndpoints(r)
+	csockets.RegisterHTTPEndpoints(r)
 
 	// HTTP server
 	a.httpServer = &http.Server{
