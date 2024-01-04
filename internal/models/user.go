@@ -1,7 +1,13 @@
 package models
 
 type User struct {
-	ID       string
-	Username string
-	Password string
+	ID        string
+	Email     string
+	Username  string
+	Password  string
+	PhotoURL  string
+	FirstName string
+	LastName  string
+	IsOnline  bool
+	IsBanned  bool
 }

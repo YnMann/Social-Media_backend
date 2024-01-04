@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/YnMann/chat_backend/internal/auth"
+	"github.com/YnMann/chat_backend/internal/chat"
 
 	// a = auth
 	ahttp "github.com/YnMann/chat_backend/internal/auth/delivery/http"
@@ -24,15 +24,15 @@ import (
 
 	// c = chat
 	chttp "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
+	cmongo "github.com/YnMann/chat_backend/internal/chat/repository/mongo"
+	cusecase "github.com/YnMann/chat_backend/internal/chat/usecase"
 )
 
 // APIServer
 type App struct {
-	logger *logrus.Logger
-
 	httpServer *http.Server
 	authUC     auth.UseCase
-	// store  *store.Store
+	chatUC     chat.UseCase
 }
 
 // New
@@ -40,16 +40,16 @@ func NewApp() *App {
 	db := initDb()
 
 	userRepo := amongo.NewUserRepository(db, viper.GetString("mongo.collections.users"))
-	// messagesRepo := cmongo.NewMessagesRepository(db, viper.GetString("mongo.collections.messages"))
+	messagesRepo := cmongo.NewMessagesRepository(db, viper.GetString("mongo.collections.messages"))
 
 	return &App{
-		logger: logrus.New(),
 		authUC: ausecase.NewAuthUseCase(
 			userRepo,
 			viper.GetString("auth.hash_salt"),
 			[]byte(viper.GetString("auth.signing_key")),
 			viper.GetDuration("auth.token_ttl"),
 		),
+		chatUC: cusecase.NewChatUseCase(messagesRepo),
 	}
 }
 

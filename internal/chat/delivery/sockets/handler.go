@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 )
 
 // Client management
@@ -170,7 +171,7 @@ func healthHandler(res http.ResponseWriter, _ *http.Request) {
 
 func LocalIp() string {
 	address, _ := net.InterfaceAddrs()
-	var ip = "localhost"
+	var ip = viper.GetString("host")
 	for _, address := range address {
 		if ipAddress, ok := address.(*net.IPNet); ok && !ipAddress.IP.IsLoopback() {
 			if ipAddress.IP.To4() != nil {
