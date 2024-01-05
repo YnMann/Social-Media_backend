@@ -39,7 +39,6 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 	user, err := m.usecase.ParseToken(c.Request.Context(), headerParts[1])
 	if err != nil {
 		status := http.StatusInternalServerError
-
 		if err == auth.ErrInvalidAccessToken {
 			status = http.StatusUnauthorized
 		}

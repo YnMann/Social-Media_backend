@@ -29,6 +29,7 @@ func (uc *UserUseCase) GetContacts(ctx context.Context) ([]*models.Contacts, err
 
 func (uc *UserUseCase) GetUserProfile(ctx context.Context, uID string) (*models.User, error) {
 	c, err := uc.userRepo.GetUserProfile(ctx, uID)
+
 	if err != nil {
 		return nil, err
 	}

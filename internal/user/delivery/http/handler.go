@@ -34,6 +34,12 @@ func (h *Handler) GetContacts(c *gin.Context) {
 func (h *Handler) GetUserProfile(c *gin.Context) {
 	// Get the user information from the context
 	userToken, ok := c.Get(auth.CtxUserKey)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
 
 	user, ok := userToken.(*models.User)
 	if !ok {

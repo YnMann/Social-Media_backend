@@ -34,7 +34,6 @@ func NewUserRepository(db *mongo.Database, collection string) (*UserRepository, 
 	userRepo := &UserRepository{
 		db: db.Collection(collection),
 	}
-
 	// Creating an autorepo inside the New User Repository, passing the same collection to it
 	authRepo := auth.NewAuthRepository(db, collection)
 
@@ -42,9 +41,14 @@ func NewUserRepository(db *mongo.Database, collection string) (*UserRepository, 
 }
 
 func (r UserRepository) GetUserProfile(ctx context.Context, uID string) (*models.User, error) {
+	objID, err := primitive.ObjectIDFromHex(uID)
+	if err != nil {
+		return nil, err
+	}
+
 	user := new(UserProfile)
 
-	err := r.db.FindOne(ctx, bson.M{"_id": uID}).Decode(user)
+	err = r.db.FindOne(ctx, bson.M{"_id": objID}).Decode(user)
 	if err != nil {
 		return nil, err
 	}
