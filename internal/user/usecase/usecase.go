@@ -19,6 +19,14 @@ func NewUserUseCase(
 	}
 }
 
+func (uc *UserUseCase) GetContacts(ctx context.Context) ([]*models.Contacts, error) {
+	c, err := uc.userRepo.GetContacts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
 func (uc *UserUseCase) GetUserProfile(ctx context.Context, uID string) (*models.User, error) {
 	c, err := uc.userRepo.GetUserProfile(ctx, uID)
 	if err != nil {

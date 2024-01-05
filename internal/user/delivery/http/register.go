@@ -6,11 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterHTTPEndpoints(router *gin.Engine, uuc user.UseCase, auc auth.UseCase) {
+func RegisterHTTPEndpoints(router *gin.RouterGroup, uuc user.UseCase, auc auth.UseCase) {
 	h := NewHandler(uuc, auc)
 
-	authEndpoints := router.Group("/api")
+	authEndpoints := router.Group("/user")
 	{
 		authEndpoints.GET("/get-profile", h.GetUserProfile)
+		authEndpoints.GET("/get-contacts", h.GetContacts)
 	}
 }

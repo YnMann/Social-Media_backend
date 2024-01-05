@@ -17,14 +17,14 @@ type AuthClaims struct {
 }
 
 type AuthUseCase struct {
-	userRepo       auth.UserRepository
+	userRepo       auth.AuthRepository
 	hashSalt       string
 	signingKey     []byte
 	expireDuration time.Duration
 }
 
 func NewAuthUseCase(
-	userRepo auth.UserRepository,
+	userRepo auth.AuthRepository,
 	hashSalt string,
 	signingKey []byte,
 	tokenTTLSeconds time.Duration,

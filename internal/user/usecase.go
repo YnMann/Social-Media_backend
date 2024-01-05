@@ -10,4 +10,5 @@ const CtxUserKey = "user"
 
 type UseCase interface {
 	GetUserProfile(ctx context.Context, uID string) (*models.User, error)
+	GetContacts(ctx context.Context) ([]*models.Contacts, error)
 }

@@ -8,4 +8,5 @@ import (
 
 type UserRepository interface {
 	GetUserProfile(ctx context.Context, uID string) (*models.User, error)
+	GetContacts(ctx context.Context) ([]*models.Contacts, error)
 }

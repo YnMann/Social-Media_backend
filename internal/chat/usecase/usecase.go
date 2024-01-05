@@ -1,10 +1,7 @@
 package usecase
 
 import (
-	"context"
-
 	"github.com/YnMann/chat_backend/internal/chat"
-	"github.com/YnMann/chat_backend/internal/models"
 )
 
 type ChatUseCase struct {
@@ -17,12 +14,4 @@ func NewChatUseCase(
 	return &ChatUseCase{
 		chatRepo: chatRepo,
 	}
-}
-
-func (uc *ChatUseCase) GetContacts(ctx context.Context) ([]*models.Contacts, error) {
-	c, err := uc.chatRepo.GetContacts(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
 }

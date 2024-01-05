@@ -20,17 +20,16 @@ import (
 
 	// a = auth
 	ahttp "github.com/YnMann/chat_backend/internal/auth/delivery/http"
-	amongo "github.com/YnMann/chat_backend/internal/auth/repository/mongo"
 	ausecase "github.com/YnMann/chat_backend/internal/auth/usecase"
 
 	// c = chat
-	chttp "github.com/YnMann/chat_backend/internal/chat/delivery/http"
 	csockets "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
 	cmongo "github.com/YnMann/chat_backend/internal/chat/repository/mongo"
 	cusecase "github.com/YnMann/chat_backend/internal/chat/usecase"
 
 	// u - user
 	uhttp "github.com/YnMann/chat_backend/internal/user/delivery/http"
+	umongo "github.com/YnMann/chat_backend/internal/user/repository/mongo"
 	uusecase "github.com/YnMann/chat_backend/internal/user/usecase"
 )
 
@@ -46,7 +45,7 @@ type App struct {
 func NewApp() *App {
 	db := initDb()
 
-	userRepo := amongo.NewUserRepository(db, viper.GetString("mongo.collections.users"))
+	userRepo, authRepo := umongo.NewUserRepository(db, viper.GetString("mongo.collections.users"))
 	messagesRepo := cmongo.NewMessagesRepository(
 		db,
 		viper.GetString("mongo.collections.messages"),
@@ -55,7 +54,7 @@ func NewApp() *App {
 
 	return &App{
 		authUC: ausecase.NewAuthUseCase(
-			userRepo,
+			authRepo,
 			viper.GetString("auth.hash_salt"),
 			[]byte(viper.GetString("auth.signing_key")),
 			viper.GetDuration("auth.token_ttl"),
@@ -87,15 +86,11 @@ func (a *App) Run(port string) error {
 
 	// API endpoints
 	authMiddleware := ahttp.NewAuthMiddleware(a.authUC)
-	r.Group("/api", authMiddleware)
+	api := r.Group("/api", authMiddleware)
 
 	// Set up http handlers
 	// SignUp/SignIn endpoints
 	ahttp.RegisterHTTPEndpoints(r, a.authUC)
-
-	// Set up http handlers
-	// Chat endpoints
-	chttp.RegisterHTTPEndpoints(r, a.chatUC)
 
 	// Set up http handlers
 	// Sockets endpoints
@@ -103,7 +98,7 @@ func (a *App) Run(port string) error {
 
 	// Set up http handlers
 	// User endpoints
-	uhttp.RegisterHTTPEndpoints(r, a.userUC, a.authUC)
+	uhttp.RegisterHTTPEndpoints(api, a.userUC, a.authUC)
 
 	// HTTP server
 	a.httpServer = &http.Server{
