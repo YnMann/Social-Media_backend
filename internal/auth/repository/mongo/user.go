@@ -19,6 +19,11 @@ type UserRepository struct {
 	db *mongo.Collection
 }
 
+// GetUserProfile implements user.UserRepository.
+func (*UserRepository) GetUserProfile(ctx context.Context, token string) (*models.User, error) {
+	panic("unimplemented")
+}
+
 func NewUserRepository(db *mongo.Database, collection string) *UserRepository {
 	return &UserRepository{
 		db: db.Collection(collection),

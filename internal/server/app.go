@@ -16,6 +16,7 @@ import (
 
 	"github.com/YnMann/chat_backend/internal/auth"
 	"github.com/YnMann/chat_backend/internal/chat"
+	"github.com/YnMann/chat_backend/internal/user"
 
 	// a = auth
 	ahttp "github.com/YnMann/chat_backend/internal/auth/delivery/http"
@@ -27,6 +28,10 @@ import (
 	csockets "github.com/YnMann/chat_backend/internal/chat/delivery/sockets"
 	cmongo "github.com/YnMann/chat_backend/internal/chat/repository/mongo"
 	cusecase "github.com/YnMann/chat_backend/internal/chat/usecase"
+
+	// u - user
+	uhttp "github.com/YnMann/chat_backend/internal/user/delivery/http"
+	uusecase "github.com/YnMann/chat_backend/internal/user/usecase"
 )
 
 // APIServer
@@ -34,6 +39,7 @@ type App struct {
 	httpServer *http.Server
 	authUC     auth.UseCase
 	chatUC     chat.UseCase
+	userUC     user.UseCase
 }
 
 // New
@@ -55,6 +61,7 @@ func NewApp() *App {
 			viper.GetDuration("auth.token_ttl"),
 		),
 		chatUC: cusecase.NewChatUseCase(messagesRepo),
+		userUC: uusecase.NewUserUseCase(userRepo),
 	}
 }
 
@@ -93,6 +100,10 @@ func (a *App) Run(port string) error {
 	// Set up http handlers
 	// Sockets endpoints
 	csockets.RegisterHTTPEndpoints(r)
+
+	// Set up http handlers
+	// User endpoints
+	uhttp.RegisterHTTPEndpoints(r, a.userUC, a.authUC)
 
 	// HTTP server
 	a.httpServer = &http.Server{

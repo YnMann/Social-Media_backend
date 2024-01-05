@@ -6,7 +6,7 @@ import (
 	"github.com/YnMann/chat_backend/internal/models"
 )
 
-const CtxUserKey = "user"
+const CtxUserKey = "auth"
 
 type UseCase interface {
 	SignUp(ctx context.Context, username, password string) error
