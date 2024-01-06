@@ -37,14 +37,17 @@ func NewAuthUseCase(
 	}
 }
 
-func (a *AuthUseCase) SignUp(ctx context.Context, username string, password string) error {
+func (a *AuthUseCase) SignUp(ctx context.Context, data *models.User) error {
 	pwd := sha1.New()
-	pwd.Write([]byte(password))
+	pwd.Write([]byte(data.Password))
 	pwd.Write([]byte(a.hashSalt))
 
 	user := &models.User{
-		Username: username,
-		Password: fmt.Sprintf("%x", pwd.Sum(nil)),
+		Email:     data.Email,
+		Username:  data.Username,
+		Password:  fmt.Sprintf("%x", pwd.Sum(nil)),
+		FirstName: data.FirstName,
+		LastName:  data.LastName,
 	}
 
 	return a.userRepo.CreateUser(ctx, user)

@@ -14,9 +14,15 @@ type AuthRepository struct {
 }
 
 type User struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	Username string             `bson:"username"`
-	Password string             `bson:"password"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	Email     string             `bson:"email"`
+	Username  string             `bson:"username"`
+	Password  string             `bson:"password"`
+	PhotoURL  string             `bson:"photo_url"`
+	FirstName string             `bson:"first_name"`
+	LastName  string             `bson:"last_name"`
+	IsOnline  bool               `bson:"is_online"`
+	IsBanned  bool               `bson:"is_banned"`
 }
 
 func NewAuthRepository(db *mongo.Database, collection string) *AuthRepository {
@@ -31,15 +37,17 @@ func (r AuthRepository) CreateUser(ctx context.Context, user *models.User) error
 	if err != nil {
 		return err
 	}
-
 	user.ID = res.InsertedID.(primitive.ObjectID).Hex()
 	return nil
 }
 
 func toMongoUser(u *models.User) *User {
 	return &User{
-		Username: u.Username,
-		Password: u.Password,
+		Email:     u.Email,
+		Username:  u.Username,
+		Password:  u.Password,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
 	}
 }
 
