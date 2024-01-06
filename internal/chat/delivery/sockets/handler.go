@@ -32,6 +32,14 @@ type Client struct {
 	send chan []byte
 }
 
+// Create a client manager
+var manager = ClientManager{
+	broadcast:  make(chan []byte),
+	register:   make(chan *Client),
+	unregister: make(chan *Client),
+	clients:    make(map[*Client]bool),
+}
+
 // Will formatting Message into JSON
 type Message struct {
 	//Message Struct
@@ -40,14 +48,6 @@ type Message struct {
 	Content   string `json:"content,omitempty"`
 	ServerIP  string `json:"serverIp,omitempty"`
 	SenderIP  string `json:"senderIp,omitempty"`
-}
-
-// Create a client manager
-var manager = ClientManager{
-	broadcast:  make(chan []byte),
-	register:   make(chan *Client),
-	unregister: make(chan *Client),
-	clients:    make(map[*Client]bool),
 }
 
 func (manager *ClientManager) start() {
@@ -61,6 +61,7 @@ func (manager *ClientManager) start() {
 			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected. ", ServerIP: LocalIp(), SenderIP: conn.socket.RemoteAddr().String()})
 			//Call the client's send method and send messages
 			manager.send(jsonMessage, conn)
+
 			//If the connection is disconnected
 		case conn := <-manager.unregister:
 			//Determine the state of the connection, if it is true, turn off Send and delete the value of connecting client

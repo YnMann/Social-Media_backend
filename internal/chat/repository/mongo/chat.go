@@ -38,6 +38,19 @@ func NewMessagesRepository(
 	}
 }
 
+func (r ChatRepository) SetUserOnlineStatus(ctx context.Context, userID string, isOnline bool) error {
+	filter := bson.M{"_id": userID}
+
+	update := bson.M{"$set": bson.M{"is_online": isOnline}}
+
+	_, err := r.udb.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateMsg creates a new message in MongoDB.
 func (c ChatRepository) CreateMsg(ctx context.Context, m *models.Messages) error {
 	// Convert the models.Messages to a MongoDB document
