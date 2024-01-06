@@ -72,6 +72,8 @@ type Contacts struct {
 	FirstName string             `bson:"first_name"`
 	LastName  string             `bson:"last_name"`
 	PhotoURL  string             `bson:"photo_url"`
+	IsOnline  bool               `bson:"is_online"`
+	IsBanned  bool               `bson:"is_banned"`
 }
 
 func (r UserRepository) GetContacts(ctx context.Context) ([]*models.Contacts, error) {
@@ -85,6 +87,8 @@ func (r UserRepository) GetContacts(ctx context.Context) ([]*models.Contacts, er
 		"id":         1,
 		"first_name": 1,
 		"last_name":  1,
+		"is_online":  1,
+		"is_banned":  1,
 	}
 
 	cursor, err := r.db.Find(ctx, filter, options.Find().SetProjection(projection))
@@ -117,6 +121,8 @@ func toModelContacts(c []*Contacts) []*models.Contacts {
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
 			PhotoURL:  user.PhotoURL,
+			IsOnline:  user.IsOnline,
+			IsBanned:  user.IsBanned,
 		}
 	}
 

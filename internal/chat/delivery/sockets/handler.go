@@ -1,12 +1,14 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"net"
 	"net/http"
 
+	"github.com/YnMann/chat_backend/internal/chat"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 )
 
@@ -25,11 +27,13 @@ type ClientManager struct {
 // Client
 type Client struct {
 	//User ID
-	id string
+	uID string
 	//Connected socket
 	socket *websocket.Conn
 	//Message
 	send chan []byte
+	//ctx
+	ctx context.Context
 }
 
 // Create a client manager
@@ -43,32 +47,81 @@ var manager = ClientManager{
 // Will formatting Message into JSON
 type Message struct {
 	//Message Struct
-	Sender    string `json:"sender,omitempty"`
-	Recipient string `json:"recipient,omitempty"`
-	Content   string `json:"content,omitempty"`
-	ServerIP  string `json:"serverIp,omitempty"`
-	SenderIP  string `json:"senderIp,omitempty"`
+	SenderID    string `json:"sender_id,omitempty"`
+	RecipientID string `json:"recipient_id,omitempty"`
+	Content     string `json:"content,omitempty"`
+	ServerIP    string `json:"serverIp,omitempty"`
+	SenderIP    string `json:"senderIp,omitempty"`
 }
 
-func (manager *ClientManager) start() {
+// For waiting upload data in db
+var wait = make(chan struct{})
+
+func (manager *ClientManager) start(uc chat.UseCase) {
 	for {
 		select {
 		//If there is a new connection access, pass the connection to conn through the channel
 		case conn := <-manager.register:
-			//Set the client connection to true
+			// Set the client connection to true
 			manager.clients[conn] = true
+			// Change on db - isOnline
+			go func() {
+				err := uc.SetUserOnlineStatus(conn.ctx, conn.uID, true)
+
+				if err != nil {
+					jsonMessage, _ := json.Marshal(
+						&Message{
+							Content:  "Set online status err",
+							ServerIP: LocalIp(),
+							SenderIP: conn.socket.RemoteAddr().String(),
+						},
+					)
+					manager.send(jsonMessage, conn)
+				}
+				wait <- struct{}{}
+			}()
+			<-wait
 			//Format the message of returning to the successful connection JSON
-			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected. ", ServerIP: LocalIp(), SenderIP: conn.socket.RemoteAddr().String()})
+			jsonMessage, _ := json.Marshal(
+				&Message{
+					Content:  "/A new socket has connected. ",
+					ServerIP: LocalIp(),
+					SenderIP: conn.socket.RemoteAddr().String(),
+				},
+			)
 			//Call the client's send method and send messages
 			manager.send(jsonMessage, conn)
 
-			//If the connection is disconnected
+		//If the connection is disconnected
 		case conn := <-manager.unregister:
 			//Determine the state of the connection, if it is true, turn off Send and delete the value of connecting client
 			if _, ok := manager.clients[conn]; ok {
+				go func() {
+					err := uc.SetUserOnlineStatus(conn.ctx, conn.uID, false)
+
+					if err != nil {
+						jsonMessage, _ := json.Marshal(
+							&Message{
+								Content:  "Disconnect err",
+								ServerIP: LocalIp(),
+								SenderIP: conn.socket.RemoteAddr().String(),
+							},
+						)
+						manager.send(jsonMessage, conn)
+					}
+					wait <- struct{}{}
+				}()
+				<-wait
+
 				close(conn.send)
 				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected. ", ServerIP: LocalIp(), SenderIP: conn.socket.RemoteAddr().String()})
+				jsonMessage, _ := json.Marshal(
+					&Message{
+						Content:  "/A socket has disconnected. ",
+						ServerIP: LocalIp(),
+						SenderIP: conn.socket.RemoteAddr().String(),
+					},
+				)
 				manager.send(jsonMessage, conn)
 			}
 			//broadcast
@@ -110,10 +163,18 @@ func (c *Client) read() {
 		if err != nil {
 			manager.unregister <- c
 			_ = c.socket.Close()
+
 			break
 		}
 		//If there is no error message, put the information in Broadcast
-		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: string(message), ServerIP: LocalIp(), SenderIP: c.socket.RemoteAddr().String()})
+		jsonMessage, _ := json.Marshal(
+			&Message{
+				SenderID: c.uID,
+				Content:  string(message),
+				ServerIP: LocalIp(),
+				SenderIP: c.socket.RemoteAddr().String(),
+			},
+		)
 		manager.broadcast <- jsonMessage
 	}
 }
@@ -147,27 +208,40 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func wsHandler(res http.ResponseWriter, req *http.Request) {
-	//Upgrade the HTTP protocol to the websocket protocol
-	conn, err := upgrader.Upgrade(res, req, nil)
+func wsHandler(c *gin.Context) {
+	// Upgrade the HTTP protocol to the websocket protocol
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		http.NotFound(res, req)
+		http.NotFound(c.Writer, c.Request)
 		return
 	}
 
-	//Every connection will open a new client, client.id generates through UUID to ensure that each time it is different
-	client := &Client{id: uuid.Must(uuid.NewV4(), nil).String(), socket: conn, send: make(chan []byte)}
-	//Register a new link
+	var msg Message
+	if err := conn.ReadJSON(&msg); err != nil {
+		http.Error(c.Writer, "Invalid message format", http.StatusBadRequest)
+		return
+	}
+	userID := msg.SenderID
+
+	// Every connection will open a new client, client.id generates through UUID to ensure that each time it is different
+	client := &Client{
+		uID:    userID,
+		socket: conn,
+		send:   make(chan []byte),
+		ctx:    c,
+	}
+
+	// Register a new link
 	manager.register <- client
 
-	//Start the message to collect the news from the web side
+	// Start the message to collect the news from the web side
 	go client.read()
-	//Start the corporation to return the message to the web side
+	// Start the corporation to return the message to the web side
 	go client.write()
 }
 
-func healthHandler(res http.ResponseWriter, _ *http.Request) {
-	_, _ = res.Write([]byte("ok"))
+func healthHandler(c *gin.Context) {
+	_, _ = c.Writer.Write([]byte("ok"))
 }
 
 func LocalIp() string {

@@ -5,4 +5,6 @@ type Contacts struct {
 	FirstName string
 	LastName  string
 	PhotoURL  string
+	IsOnline  bool
+	IsBanned  bool
 }

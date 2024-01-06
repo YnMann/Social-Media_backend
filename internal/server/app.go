@@ -94,7 +94,7 @@ func (a *App) Run(port string) error {
 
 	// Set up http handlers
 	// Sockets endpoints
-	csockets.RegisterHTTPEndpoints(r)
+	csockets.RegisterHTTPEndpoints(r, a.chatUC)
 
 	// Set up http handlers
 	// User endpoints

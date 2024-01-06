@@ -38,12 +38,17 @@ func NewMessagesRepository(
 	}
 }
 
-func (r ChatRepository) SetUserOnlineStatus(ctx context.Context, userID string, isOnline bool) error {
-	filter := bson.M{"_id": userID}
+func (r ChatRepository) SetUserOnlineStatus(ctx context.Context, uID string, isOnline bool) error {
+	objID, err := primitive.ObjectIDFromHex(uID)
+	if err != nil {
+		return err
+	}
 
+	filter := bson.M{"_id": objID}
 	update := bson.M{"$set": bson.M{"is_online": isOnline}}
 
-	_, err := r.udb.UpdateOne(ctx, filter, update)
+	res, err := r.udb.UpdateOne(ctx, filter, update)
+	_ = res
 	if err != nil {
 		return err
 	}

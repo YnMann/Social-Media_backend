@@ -19,7 +19,12 @@ func NewChatUseCase(
 	}
 }
 
-func (uc *ChatUseCase) SetUserOnlineStatus(ctx context.Context, userID string, isOnline bool) error {
+func (uc *ChatUseCase) SetUserOnlineStatus(ctx context.Context, uID string, isOnline bool) error {
+	err := uc.chatRepo.SetUserOnlineStatus(ctx, uID, isOnline)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
